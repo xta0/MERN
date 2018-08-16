@@ -1,12 +1,21 @@
 const express = require('express')
 const mongoose = require('mongoose')
+const bodyParser = require('body-parser')
+const passport = require('passport')
 
-const users = require('./routes/api/users')
-const profile = require('./routes/api/profile')
-const posts = require('./routes/api/posts')
+const usersRouter = require('./routes/api/users')
+const profileRouter = require('./routes/api/profile')
+const postsRouter = require('./routes/api/posts')
+const indexRouter = require('./routes/index')
 
 
 const app = express()
+
+//middle ware
+app.use(bodyParser.urlencoded({extended:false}))
+app.use(bodyParser.json());
+app.use(passport.initialize())
+require('./config/passport')(passport)
 
 //DB config
 const db = require('./config/keys').mongoURI;
@@ -20,21 +29,12 @@ mongoose.connect(db)
             console.log(err)
         })
 
-app.get('/',(req,res)=>{
-    res.send('Hello')
-});
 
-// app.use('/',function(req,res){
-//     console.log(req.url)
-// })
-//User Routes
-app.use('api/users',(req,res)=>{
-    console.log("users worked!")
-})
-//User Posts
-app.use('api/posts',posts)
-//User profile
-app.use('api/profile',profile)
+
+app.use('/',indexRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/profile', profileRouter);
+app.use('/api/posts', postsRouter);
 
 const port = process.env.PORT || 5000;
 app.listen(port,()=>{
